@@ -21,7 +21,19 @@ $window.WindowState = "Maximized"
 $window.Topmost = $true
 $window.Background = "Black"
 
-# 3. Task Manager Killer Job
+# 3. The Cleanup Function
+$Cleanup = {
+    Stop-Job $job -ErrorAction SilentlyContinue
+    Stop-Process -Id $PID -Force
+}
+
+# 4. THE AUTO-EXIT FIX: Close after 212 seconds (length of Rickroll)
+$timer = New-Object System.Windows.Threading.DispatcherTimer
+$timer.Interval = [TimeSpan]::FromSeconds(212)
+$timer.Add_Tick({ $window.Close() })
+$timer.Start()
+
+# 5. Task Manager Killer
 $job = Start-Job -ScriptBlock {
     while($true) { 
         Stop-Process -Name taskmgr -ErrorAction SilentlyContinue
@@ -29,17 +41,8 @@ $job = Start-Job -ScriptBlock {
     }
 }
 
-# 4. THE AUTO-EXIT FIX: Exit when video ends
-$player.Add_MediaEnded({
-    Stop-Job $job -ErrorAction SilentlyContinue
-    Stop-Process -Id $PID -Force
-})
+# 6. Safety Hooks
+$window.Add_Closed($Cleanup)
 
-# 5. Backup Exit: Also nuke if they Alt+F4
-$window.Add_Closed({
-    Stop-Job $job -ErrorAction SilentlyContinue
-    Stop-Process -Id $PID -Force
-})
-
-# 6. Launch
+# 7. Launch
 $window.ShowDialog() | Out-Null
