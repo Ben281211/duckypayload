@@ -7,11 +7,13 @@ if (!(Test-Path $vid)) {
     (New-Object System.Net.WebClient).DownloadFile($url, $vid)
 }
 
+# 1. Setup the Player
 $player = New-Object System.Windows.Controls.MediaElement
 $player.Source = $vid
 $player.LoadedBehavior = "Play"
 $player.Stretch = "UniformToFill"
 
+# 2. Setup the Window
 $window = New-Object System.Windows.Window
 $window.Content = $player
 $window.WindowStyle = "None"
@@ -19,6 +21,7 @@ $window.WindowState = "Maximized"
 $window.Topmost = $true
 $window.Background = "Black"
 
+# 3. Task Manager Killer Job
 $job = Start-Job -ScriptBlock {
     while($true) { 
         Stop-Process -Name taskmgr -ErrorAction SilentlyContinue
@@ -26,9 +29,17 @@ $job = Start-Job -ScriptBlock {
     }
 }
 
+# 4. THE AUTO-EXIT FIX: Exit when video ends
+$player.Add_MediaEnded({
+    Stop-Job $job -ErrorAction SilentlyContinue
+    Stop-Process -Id $PID -Force
+})
+
+# 5. Backup Exit: Also nuke if they Alt+F4
 $window.Add_Closed({
     Stop-Job $job -ErrorAction SilentlyContinue
     Stop-Process -Id $PID -Force
 })
 
+# 6. Launch
 $window.ShowDialog() | Out-Null
