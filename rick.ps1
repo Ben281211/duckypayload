@@ -29,7 +29,7 @@ $Cleanup = {
 
 # 4. THE AUTO-EXIT FIX: Close after 212 seconds (length of Rickroll)
 $timer = New-Object System.Windows.Threading.DispatcherTimer
-$timer.Interval = [TimeSpan]::FromSeconds(212)
+$timer.Interval = [TimeSpan]::FromSeconds(8)
 $timer.Add_Tick({ $window.Close() })
 $timer.Start()
 
